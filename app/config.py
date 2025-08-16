@@ -16,8 +16,13 @@ class Config:
 
 class DevelopmentConfig(Config):
   DEBUG: bool = True
-  DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///dev.db")
-  SQLALCHEMY_DATABASE_URI: str = DATABASE_URL
+  DATABASE_URL: str = os.getenv("DATABASE_URL")
+  
+  def __init__(self):
+    if self.DATABASE_URL:
+      self.SQLALCHEMY_DATABASE_URI = self.DATABASE_URL
+    else:
+      self.SQLALCHEMY_DATABASE_URI = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 class ProductionConfig(Config):
   DEBUG: bool = False

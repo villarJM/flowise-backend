@@ -24,6 +24,76 @@ docker-compose -f docker-compose.dev.yml up --build
 docker-compose up --build
 ```
 
+## 📋 Comandos de Configuración Utilizados
+
+### Configuración Inicial de Docker
+```bash
+# Construir y levantar contenedores en modo desarrollo
+docker-compose -f docker-compose.dev.yml up --build -d
+
+# Verificar estado de contenedores
+docker ps
+
+# Detener contenedores
+docker-compose -f docker-compose.dev.yml down
+
+# Reiniciar contenedor específico
+docker restart flowise_server_dev
+```
+
+### Configuración de Base de Datos
+```bash
+# Conectar a PostgreSQL desde el contenedor
+docker exec -it flowise_db_dev psql -U postgres -d flowise_dev
+
+# Crear usuario con privilegios
+docker exec -it flowise_db_dev psql -U postgres -d flowise_dev -c "CREATE USER flowise_user WITH PASSWORD 'flowise1124'; GRANT ALL PRIVILEGES ON DATABASE flowise_dev TO flowise_user; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO flowise_user; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO flowise_user;"
+
+# Listar tablas en PostgreSQL
+docker exec -it flowise_db_dev psql -U postgres -d flowise_dev -c "\dt"
+
+# Conectar con el usuario creado
+docker exec -it flowise_db_dev psql -U flowise_user -d flowise_dev
+
+# Verificar variables de entorno en el contenedor
+docker exec -it flowise_server_dev env | grep -E '(DATABASE_URL|POSTGRES_)'
+```
+
+### Migraciones de Base de Datos
+```bash
+# Ejecutar migraciones (crear tablas)
+docker exec -it flowise_server_dev flask db upgrade
+
+# Generar nueva migración
+docker exec -it flowise_server_dev flask db migrate -m "Initial migration with all models"
+
+# Inicializar repositorio de migraciones (solo primera vez)
+docker exec -it flowise_server_dev flask db init
+```
+
+### Ejecución del Servidor
+```bash
+# Ejecutar servidor Flask manualmente
+docker exec -it flowise_server_dev python run.py
+
+# Verificar salud del servidor
+curl http://localhost:8000/health
+```
+
+### Comandos de Depuración
+```bash
+# Ver logs de contenedor específico
+docker logs flowise_server_dev
+docker logs flowise_db_dev
+
+# Acceder al shell del contenedor
+docker exec -it flowise_server_dev /bin/bash
+docker exec -it flowise_db_dev /bin/bash
+
+# Verificar procesos en puerto específico
+lsof -i :8000
+```
+
 ## 🛠️ Tecnologías
 
 - **Framework**: Flask 3.1.1

@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from app import db
 
 class UserProjectModel(db.Model):
     __tablename__ = 'user_projects'
