@@ -6,7 +6,7 @@ class UserModel(db.Model):
   name = db.Column(db.String(36), nullable=True)
   last_name = db.Column(db.String(100))
   email = db.Column(db.String(100), unique=True, nullable=False)
-  password = db.Column(db.String(255), nullable=False)
+  password = db.Column(db.Text, nullable=False)
   role = db.Column(db.String(50))
   company = db.Column(db.String(100))
   created_at = db.Column(db.DateTime, default=db.func.current_timestamp())

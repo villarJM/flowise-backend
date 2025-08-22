@@ -35,11 +35,13 @@ class AuthService:
   @staticmethod
   def hash_password(password):
     """Hash password using bcrypt"""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    # Generar hash y convertir a string para BD
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
   @staticmethod
   def check_password(password, hashed_password):
     """Verify password using bcrypt"""
+    # Convertir hash de string a bytes para verificación
     return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
     
   @staticmethod
