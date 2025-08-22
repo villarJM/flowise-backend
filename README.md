@@ -236,11 +236,168 @@ flask db upgrade
 flask db downgrade
 ```
 
+## 🔐 Módulo de Autenticación
+
+### Arquitectura del Módulo Auth
+
+El sistema de autenticación sigue una arquitectura en capas:
+
+```
+auth_routes.py → auth_service.py → auth_repository.py → user_model.py
+     ↓               ↓                    ↓               ↓
+  Endpoints      Lógica de         Acceso a Datos    Modelo de BD
+                 Negocio
+```
+
+### Componentes Principales
+
+#### 1. **AuthRoutes** (`/app/routes/auth_routes.py`)
+- **POST /auth/login** - Autenticación de usuarios
+- **POST /auth/register** - Registro de nuevos usuarios
+- Validación de Content-Type (application/json)
+- Manejo de errores con códigos HTTP apropiados
+
+#### 2. **AuthService** (`/app/services/auth_service.py`)
+- `login_user()` - Validación de credenciales
+- `register_user()` - Creación de usuarios con validaciones
+- `hash_password()` - Encriptación con bcrypt
+- `check_password()` - Verificación de contraseñas
+- `is_password_strong()` - Validación de fortaleza de contraseña
+
+#### 3. **AuthRepository** (`/app/repositories/auth_repository.py`)
+- `create_user()` - Persistencia de usuarios en BD
+- `get_user_by_email()` - Búsqueda por email
+
+#### 4. **UserModel** (`/app/models/user_model.py`)
+- Modelo SQLAlchemy para tabla `users`
+- Campos: id, name, last_name, email, password, role, company
+- Timestamps automáticos (created_at, updated_at)
+
+#### 5. **UserRegisterSchema** (`/app/schemas/user_register_schema.py`)
+- Validación con Marshmallow
+- Email válido requerido
+- Contraseña mínimo 8 caracteres
+
+### Seguridad Implementada
+
+#### Encriptación de Contraseñas
+- **Algoritmo**: bcrypt con salt automático
+- **Verificación**: Comparación segura con hash almacenado
+
+#### Validación de Contraseñas Fuertes
+- Mínimo 8 caracteres
+- Al menos 1 mayúscula
+- Al menos 1 minúscula
+- Al menos 1 número
+- Al menos 1 carácter especial (!@#$%^&*()_+-=[]{}|;:,.<>?)
+
+#### Validaciones de Negocio
+- Email único en el sistema
+- Formato de email válido
+- Usuario existente para login
+- Contraseña correcta para autenticación
+
+### Manejo de Errores
+
+#### Excepciones Personalizadas
+- `ValidationError` (400) - Datos inválidos
+- `NotFoundException` (404) - Usuario no encontrado
+- `AuthenticationError` (401) - Credenciales incorrectas
+- `AuthorizationError` (403) - Permisos insuficientes
+
+#### Respuestas de Error
+```json
+{
+  "message": "Descripción del error",
+  "status": 400,
+  "data": {
+    "field": ["Error específico del campo"]
+  }
+}
+```
+
+### Endpoints de Autenticación
+
+#### POST /auth/login
+**Request:**
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Login successful",
+  "status": 200,
+  "data": {
+    "id": 1,
+    "email": "usuario@ejemplo.com",
+    "name": "Usuario",
+    "role": "user"
+  }
+}
+```
+
+**Errores Comunes:**
+- 400: Datos inválidos o cuerpo vacío
+- 401: Contraseña incorrecta
+- 404: Usuario no encontrado
+- 415: Content-Type incorrecto
+
+#### POST /auth/register
+**Request:**
+```json
+{
+  "email": "nuevo@ejemplo.com",
+  "password": "MiContraseña123!"
+}
+```
+
+**Response (201):**
+```json
+{
+  "message": "User registered successfully",
+  "status": 201,
+  "data": {
+    "email": "nuevo@ejemplo.com"
+  }
+}
+```
+
+**Errores Comunes:**
+- 400: Contraseña débil o datos inválidos
+- 409: Email ya registrado
+- 415: Content-Type incorrecto
+- 422: Errores de validación de esquema
+
+### Utilidades de Respuesta
+
+#### ResponseUtils (`/app/core/utils/response_utils.py`)
+- `create_response(message, status_code, data=None)`
+- Formato estándar para todas las respuestas API
+- Estructura consistente con message, status y data opcional
+
+### Pendientes de Implementación
+
+- [ ] **JWT Tokens** - Autenticación stateless
+- [ ] **Refresh Tokens** - Renovación de sesiones
+- [ ] **Rate Limiting** - Protección contra ataques de fuerza bruta
+- [ ] **Email Verification** - Verificación de cuentas
+- [ ] **Password Reset** - Recuperación de contraseñas
+- [ ] **OAuth Integration** - Login con proveedores externos
+- [ ] **Session Management** - Gestión de sesiones activas
+- [ ] **Audit Logging** - Registro de eventos de autenticación
+
 ## 🌐 API Endpoints
 
 Actualmente disponible:
 
 - `GET /` - Health check que retorna el estado de la aplicación
+- `POST /auth/login` - Autenticación de usuarios
+- `POST /auth/register` - Registro de nuevos usuarios
 
 **Respuesta del Health Check:**
 ```json
@@ -250,6 +407,38 @@ Actualmente disponible:
   "environment": "development"
 }
 ```
+
+## 📊 Códigos de Estado HTTP
+
+La API utiliza los siguientes códigos de estado HTTP estándar:
+
+### Respuestas Exitosas (2xx)
+- **200 OK** - Solicitud exitosa, datos retornados
+- **201 Created** - Recurso creado exitosamente
+- **204 No Content** - Operación exitosa sin contenido de respuesta
+
+### Errores del Cliente (4xx)
+- **400 Bad Request** - Datos de entrada inválidos o malformados
+- **401 Unauthorized** - Autenticación requerida o token inválido
+- **403 Forbidden** - Permisos insuficientes para acceder al recurso
+- **404 Not Found** - Recurso no encontrado
+- **409 Conflict** - Conflicto con el estado actual del recurso
+- **422 Unprocessable Entity** - Errores de validación de datos
+- **429 Too Many Requests** - Límite de velocidad excedido
+
+### Errores del Servidor (5xx)
+- **500 Internal Server Error** - Error interno del servidor
+- **502 Bad Gateway** - Error de gateway o proxy
+- **503 Service Unavailable** - Servicio temporalmente no disponible
+- **504 Gateway Timeout** - Timeout del gateway o proxy
+
+### Uso por Endpoint
+- **GET /health** → 200 (servicio activo) | 503 (servicio no disponible)
+- **POST /auth/login** → 200 (login exitoso) | 401 (credenciales inválidas)
+- **GET /projects** → 200 (lista de proyectos) | 401 (no autenticado)
+- **POST /projects** → 201 (proyecto creado) | 400 (datos inválidos) | 422 (validación fallida)
+- **PUT /projects/{id}** → 200 (actualizado) | 404 (no encontrado) | 403 (sin permisos)
+- **DELETE /projects/{id}** → 204 (eliminado) | 404 (no encontrado) | 409 (conflicto)
 
 ## 🏗️ Estado del Proyecto
 
