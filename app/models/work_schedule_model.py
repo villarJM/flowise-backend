@@ -2,9 +2,9 @@ from app import db
 
 class WorkScheduleModel(db.Model):
     __tablename__ = 'work_schedules'
-    id = db.Column(db.String, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
-    project_id = db.Column(db.String, db.ForeignKey('projects.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
     type = db.Column(db.String(10), nullable=False)  # CP
     day_of_week = db.Column(db.Integer, nullable=False)  # 1=lunes ... 7=domingo
     start_time = db.Column(db.Time, nullable=False)

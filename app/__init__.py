@@ -26,6 +26,9 @@ def create_app(env='development'):
   db.init_app(app)
   migrate.init_app(app, db)
 
+  # Register blueprints
+  from app.routes import auth_routes
+  app.register_blueprint(auth_routes.bp)
   
   @app.route('/')
   def health_check() -> dict:  # type: ignore

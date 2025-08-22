@@ -2,7 +2,7 @@ from app import db
 
 class ProjectModel(db.Model):
   __tablename__ = 'projects'
-  id = db.Column(db.String, primary_key=True)
+  id = db.Column(db.Integer, primary_key=True, autoincrement=True)
   project_code = db.Column(db.String(50), unique=True)
   name = db.Column(db.String(100))
   description = db.Column(db.Text)
