@@ -1,6 +1,17 @@
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt
 from app.repositories.auth_repository import AuthRepository
 from app.core.exceptions import ValidationError
 import bcrypt
+import redis
+import os
+
+# Redis client para blacklist
+redis_client = redis.Redis(
+  host=os.getenv('REDIS_HOST', 'localhost'),
+  port=int(os.getenv('REDIS_PORT', 6379)),
+  db=int(os.getenv('REDIS_DB', 0)),
+  decode_responses=True
+)
 
 class AuthService:
 
@@ -14,7 +25,16 @@ class AuthService:
     # Check if password is correct
     if not AuthService.check_password(data["password"], user.password):
       raise ValidationError("Incorrect password", 401)
-    return user
+
+    access_token = create_access_token(identity=user.id, fresh=True)
+    refresh_token = create_refresh_token(identity=user.id)
+
+    data = {
+      "access_token": access_token,
+      "refresh_token": refresh_token
+    }
+
+    return data
 
   @staticmethod
   def register_user(data):
@@ -58,3 +78,20 @@ class AuthService:
     if not any(char in "!@#$%^&*()_+-=[]{}|;:,.<>?" for char in password):
       return False
     return True
+
+  @staticmethod
+  def logout_user():
+    """Logout user by blacklisting JWT token"""
+    jti = get_jwt()["jti"]
+    exp = get_jwt()["exp"]
+    
+    # Agregar token a blacklist con TTL
+    ttl = exp - int(get_jwt()["iat"])
+    redis_client.setex(f"blacklist:{jti}", ttl, "revoked")
+    
+    return {"message": "Token invalidated", "jti": jti}
+  
+  @staticmethod
+  def is_token_blacklisted(jti):
+    """Check if token is blacklisted"""
+    return redis_client.exists(f"blacklist:{jti}")

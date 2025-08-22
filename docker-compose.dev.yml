@@ -10,6 +10,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - .env.dev
     volumes:
@@ -32,6 +34,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - flowise_network_dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: flowise_redis_dev
+    restart: unless-stopped
+    ports:
+      - 6379:6379
     networks:
       - flowise_network_dev
 

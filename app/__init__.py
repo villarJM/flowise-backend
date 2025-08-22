@@ -2,9 +2,12 @@ from flask import Flask, jsonify
 from app.config import get_config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
+from app.core.jwt_config import configure_jwt
 
 db = SQLAlchemy()
 migrate = Migrate()
+jwt = JWTManager()
 
 # Import all models so they are registered with SQLAlchemy
 from app.models import (
@@ -25,6 +28,7 @@ def create_app(env='development'):
 
   db.init_app(app)
   migrate.init_app(app, db)
+  configure_jwt(app)
 
   # Register blueprints
   from app.routes import auth_routes

@@ -13,3 +13,8 @@ class AuthRepository:
   def get_user_by_email(email):
     user = UserModel.query.filter_by(email=email).first()
     return user
+  
+  @staticmethod
+  def update_user(user):
+    db.session.commit()
+    return user
