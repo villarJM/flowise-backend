@@ -26,8 +26,8 @@ class AuthService:
     if not AuthService.check_password(data["password"], user.password):
       raise ValidationError("Incorrect password", 401)
 
-    access_token = create_access_token(identity=user.id, fresh=True)
-    refresh_token = create_refresh_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id), fresh=True)
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     data = {
       "access_token": access_token,

@@ -31,13 +31,12 @@ def login():
 
   # Llamar al servicio de autenticación
   try:
-    response = AuthService.login_user(data)
+    login_user = AuthService.login_user(data)
+    return create_response("Login successful", 200, login_user)
   except ValidationError as err:
     return create_response(str(err), err.code)
   except Exception as err:
     return create_response("Login failed", 500, str(err))
-
-  return create_response("Login successful", 200, response)
 
 # Register a new user
 @bp.route("/register", methods=["POST"])
@@ -58,13 +57,12 @@ def register():
     return create_response("Fields Invalid", 400, err.messages)
 
   try:
-    user = AuthService.register_user(data)
+    register_user = AuthService.register_user(data)
+    return create_response("User registered successfully", 201, user_schema.dump(register_user))
   except ValidationError as err:
     return create_response(str(err), err.code)
   except Exception as err:
     return create_response("User registration failed", 500, str(err))
-
-  return create_response("User registered successfully", 201, user_schema.dump(user))
 
 # Firebase Authentication
 @bp.route("/firebase/login", methods=["POST"])

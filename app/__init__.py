@@ -31,9 +31,10 @@ def create_app(env='development'):
   configure_jwt(app)
 
   # Register blueprints
-  from app.routes import auth_routes
+  from app.routes import auth_routes, profile_routes
   app.register_blueprint(auth_routes.bp)
-  
+  app.register_blueprint(profile_routes.bp)
+
   @app.route('/')
   def health_check() -> dict:  # type: ignore
     return jsonify({

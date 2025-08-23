@@ -3,14 +3,6 @@ from app.models.user_model import UserModel, db
 
 
 class ProfileRepository:
-    
-    @staticmethod
-    def create_user_profile(data: dict[str, any]) -> UserModel:
-        """Create a new profile"""
-        profileModel = UserModel(**data)
-        db.session.add(profileModel)
-        db.session.commit()
-        return profileModel
 
     @staticmethod
     def update_user_profile(profile: UserModel, data: dict[str, any]) -> UserModel:
