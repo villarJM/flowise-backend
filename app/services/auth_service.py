@@ -16,7 +16,7 @@ redis_client = redis.Redis(
 class AuthService:
 
   @staticmethod
-  def login_user(data):
+  def login_user(data: dict[str, any]):
     """Login user"""
     # Check if user exists
     user = AuthRepository.get_user_by_email(data["email"])
@@ -37,7 +37,7 @@ class AuthService:
     return data
 
   @staticmethod
-  def register_user(data):
+  def register_user(data: dict[str, any]):
     """Register a new user"""
     # Check if user already exists
     existing_user = AuthRepository.get_user_by_email(data["email"])
@@ -53,7 +53,7 @@ class AuthService:
     return user
 
   @staticmethod
-  def hash_password(password):
+  def hash_password(password: str) -> str:
     """Hash password using bcrypt"""
     # Generar hash y convertir a string para BD
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")

@@ -22,22 +22,22 @@ def login():
   if not request.json:
     return create_response("Request body is empty", 400)
 
-  user_schema = UserLoginSchema()
+  login_schema = UserLoginSchema()
 
   try:
-    data = user_schema.load(request.json)
+    data = login_schema.load(request.json)
   except MarshmallowValidationError as err:
     return create_response("Fields Required", 400, err.messages)
 
   # Llamar al servicio de autenticación
   try:
-    data = AuthService.login_user(data)
+    response = AuthService.login_user(data)
   except ValidationError as err:
     return create_response(str(err), err.code)
   except Exception as err:
     return create_response("Login failed", 500, str(err))
 
-  return create_response("Login successful", 200, data)
+  return create_response("Login successful", 200, response)
 
 # Register a new user
 @bp.route("/register", methods=["POST"])
