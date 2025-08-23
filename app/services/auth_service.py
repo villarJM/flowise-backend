@@ -50,7 +50,25 @@ class AuthService:
     data["password"] = AuthService.hash_password(data["password"])
     # Create user
     user = AuthRepository.create_user(data)
+    
+    # Register email provider
+    AuthService.register_auth_provider(user.id, "email")
+    
     return user
+  
+  @staticmethod
+  def register_auth_provider(user_id: int, provider_name: str, provider_uid: str = None):
+    """Register authentication provider for user"""
+    from app.repositories.auth_provider_repository import AuthProviderRepository
+    
+    # Check if provider already exists
+    existing_provider = AuthProviderRepository.find_by_user_and_provider(user_id, provider_name)
+    if existing_provider:
+      return existing_provider
+    
+    # Create new provider
+    provider = AuthProviderRepository.create_provider(user_id, provider_name, provider_uid)
+    return provider
 
   @staticmethod
   def hash_password(password: str) -> str:

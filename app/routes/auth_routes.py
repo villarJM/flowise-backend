@@ -81,6 +81,10 @@ def firebase_login():
     # Crear/actualizar usuario y generar JWT
     result = FirebaseAuthService.create_or_update_user(firebase_user_info)
     
+    # Registrar proveedor Firebase si es nuevo usuario
+    if result.get('is_new_user'):
+      AuthService.register_auth_provider(result['user']['id'], 'firebase', firebase_user_info['uid'])
+    
     return create_response("Firebase login successful", 200, result)
     
   except ValidationError as err:
